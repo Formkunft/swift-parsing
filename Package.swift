@@ -6,11 +6,18 @@ let package = Package(
 	platforms: [.macOS(.v10_15)],
 	products: [
 		.library(
+			name: "CollectionParsing",
+			targets: ["CollectionParsing"]),
 		.library(
 			name: "SpanParsing",
 			targets: ["SpanParsing"]),
 	],
 	targets: [
+		.target(
+			name: "CollectionParsing",
+			swiftSettings: [
+				.strictMemorySafety(),
+			]),
 		.target(
 			name: "SpanParsing",
 			swiftSettings: [
