@@ -6,12 +6,13 @@ let package = Package(
 	platforms: [.macOS(.v10_15)],
 	products: [
 		.library(
-			name: "Parsing",
-			targets: ["Parsing"]),
+		.library(
+			name: "SpanParsing",
+			targets: ["SpanParsing"]),
 	],
 	targets: [
 		.target(
-			name: "Parsing",
+			name: "SpanParsing",
 			swiftSettings: [
 				.strictMemorySafety(),
 				.enableExperimentalFeature("Lifetimes"),
