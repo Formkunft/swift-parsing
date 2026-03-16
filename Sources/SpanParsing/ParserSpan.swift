@@ -54,6 +54,31 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 		unsafe self.span.extracting(unchecked: self._position ..< self.span.count)
 	}
 	
+	/// Changes the index of the current element.
+	///
+	/// > Important: Only call this method with a new position that is a valid index for the span.
+	/// > Otherwise, a precondition failure is triggered.
+	@inlinable
+	@_lifetime(copy self)
+	public mutating func reposition(to newPosition: Int) {
+		precondition(newPosition >= 0)
+		precondition(newPosition <= self.span.count)
+		self._position = newPosition
+	}
+	
+	/// Changes the index of the current element.
+	///
+	/// > Important: Only call this method with a new position that is a valid index for the span.
+	/// > Failure to satisfy that assumption is a serious programming error.
+	@inlinable
+	@unsafe
+	@_lifetime(copy self)
+	public mutating func uncheckedReposition(to newPosition: Int) {
+		assert(newPosition >= 0)
+		assert(newPosition <= self.span.count)
+		self._position = newPosition
+	}
+	
 	// MARK: Advance
 	
 	/// Advances the parser by one element.
