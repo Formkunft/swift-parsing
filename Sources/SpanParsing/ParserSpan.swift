@@ -24,7 +24,14 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	///
 	/// The parser is at the end when its position is equal to ``span.count``.
 	@inlinable
-	public var position: Int { self._position }
+	public var position: Int {
+		get { self._position }
+		set {
+			precondition(newValue >= 0)
+			precondition(newValue <= self.span.count)
+			self._position = newValue
+		}
+	}
 	
 	/// Creates a parser for parsing the given span.
 	@inlinable
@@ -157,7 +164,7 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 			guard try predicate(element) else {
 				break
 			}
-			position += 1
+			position &+= 1
 		}
 		
 		self._position = position
@@ -263,7 +270,7 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	@_lifetime(copy self)
 	public mutating func read(count: UInt) -> Span<Element>? {
 		let count = Int(count)
-		let startIndex = self.position
+		let startIndex = self._position
 		let endIndex = startIndex + count
 		guard endIndex <= self.span.count else {
 			return nil
@@ -290,7 +297,7 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 			guard try predicate(element) else {
 				break
 			}
-			endIndex += 1
+			endIndex &+= 1
 		}
 		
 		self._position = endIndex

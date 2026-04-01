@@ -22,8 +22,18 @@ public struct Parser<Subject: Collection> {
 	
 	/// The collection that is parsed by the parser.
 	public let subject: Subject
+	@usableFromInline
+	var _position: Index
 	/// The index of the current element, which is the next element to be parsed.
-	public var position: Index
+	@inlinable
+	public var position: Index {
+		get { self._position }
+		set {
+			precondition(newValue >= self.subject.startIndex)
+			precondition(newValue <= self.subject.endIndex)
+			self._position = newValue
+		}
+	}
 	
 	/// Creates a parser for parsing the given collection.
 	///
@@ -31,14 +41,14 @@ public struct Parser<Subject: Collection> {
 	@inlinable
 	public init(subject: Subject) {
 		self.subject = subject
-		self.position = subject.startIndex
+		self._position = subject.startIndex
 	}
 	
 	/// Creates a parser for parsing the given collection from the given position.
 	@inlinable
 	public init(subject: Subject, position: Index) {
 		self.subject = subject
-		self.position = position
+		self._position = position
 	}
 	
 	// MARK: State
@@ -46,16 +56,13 @@ public struct Parser<Subject: Collection> {
 	/// Whether the parser is at the end of the subject and no more elements can be read.
 	@inlinable
 	public var isAtEnd: Bool {
-		self.position == self.subject.endIndex
+		self._position == self.subject.endIndex
 	}
 	
 	/// Returns the currently unparsed part of the subject, or an empty subsequence if the parser is at the end of the subject.
 	@inlinable
 	public func remainder() -> SubSequence {
-		guard !self.isAtEnd else {
-			return self.subject[self.subject.endIndex ..< self.subject.endIndex] // at end: return empty subsequence
-		}
-		return self.subject[self.position ..< self.subject.endIndex]
+		self.subject[self._position ..< self.subject.endIndex]
 	}
 	
 	// MARK: Advance
@@ -66,7 +73,7 @@ public struct Parser<Subject: Collection> {
 	/// > Otherwise, the call will result in a fatal error.
 	@inlinable
 	public mutating func advance() {
-		self.position = self.subject.index(after: self.position)
+		self._position = self.subject.index(after: self._position)
 	}
 	
 	/// Advances the parser by the given number of elements.
@@ -75,7 +82,7 @@ public struct Parser<Subject: Collection> {
 	/// > Otherwise, the call will result in a fatal error.
 	@inlinable
 	public mutating func advance(by distance: Int) {
-		self.position = self.subject.index(self.position, offsetBy: distance)
+		self._position = self.subject.index(self._position, offsetBy: distance)
 	}
 	
 	/// Advances the parser while `predicate` returns `true`.
@@ -99,9 +106,12 @@ public struct Parser<Subject: Collection> {
 	/// - Parameter predicate: A closure that takes the current element as its argument and returns whether the parser should advance past that element.
 	@inlinable
 	public mutating func advance<E>(while predicate: (Element) throws(E) -> Bool) throws(E) {
-		while let element = self.peek(), try predicate(element) {
-			self.advance()
+		var position = self._position
+		let endIndex = self.subject.endIndex
+		while position != endIndex, try predicate(self.subject[position]) {
+			self.subject.formIndex(after: &position)
 		}
+		self._position = position
 	}
 	
 	/// Advances the parser while `predicate` returns `true`, providing the parser for inspection.
@@ -134,7 +144,7 @@ public struct Parser<Subject: Collection> {
 		guard let match = try regex.regex.prefixMatch(in: self.remainder()) else {
 			return
 		}
-		self.position = match.range.upperBound
+		self._position = match.range.upperBound
 	}
 	#endif
 	
@@ -146,7 +156,7 @@ public struct Parser<Subject: Collection> {
 		guard !self.isAtEnd else {
 			return nil
 		}
-		return self.subject[self.position]
+		return self.subject[self._position]
 	}
 	
 	/// Returns the next two elements, if available.
@@ -156,7 +166,7 @@ public struct Parser<Subject: Collection> {
 		guard let a = self.peek() else {
 			return nil
 		}
-		let bIndex = self.subject.index(after: self.position)
+		let bIndex = self.subject.index(after: self._position)
 		guard bIndex < self.subject.endIndex else {
 			return nil
 		}
@@ -170,7 +180,7 @@ public struct Parser<Subject: Collection> {
 		guard let a = self.peek() else {
 			return nil
 		}
-		let bIndex = self.subject.index(after: self.position)
+		let bIndex = self.subject.index(after: self._position)
 		guard bIndex < self.subject.endIndex else {
 			return nil
 		}
@@ -192,15 +202,15 @@ public struct Parser<Subject: Collection> {
 	/// Returns whether the remainder of the subject starts with the given prefix.
 	@_disfavoredOverload
 	@inlinable
-	public func hasPrefix(_ prefix: some StringProtocol) -> Bool where Subject: StringProtocol {
-		self.remainder().hasPrefix(prefix)
+	public func hasPrefix(_ prefix: SubSequence) -> Bool where Element: Equatable, Element == SubSequence.Element {
+		self.remainder().starts(with: prefix)
 	}
 	
 	/// Returns whether the remainder of the subject starts with the given prefix.
 	@_disfavoredOverload
 	@inlinable
-	public func hasPrefix(_ prefix: SubSequence) -> Bool where SubSequence: Equatable {
-		self.remainder().prefix(prefix.count) == prefix
+	public func hasPrefix(_ prefix: some StringProtocol) -> Bool where Subject: StringProtocol {
+		self.remainder().hasPrefix(prefix)
 	}
 	
 	#if !$Embedded
@@ -257,17 +267,17 @@ public struct Parser<Subject: Collection> {
 	@inlinable
 	public mutating func read(count: UInt) -> SubSequence? {
 		let count = Int(count)
-		let sliceStartIndex = self.position
+		let sliceStartIndex = self._position
 		guard let sliceEndIndex = self.subject.index(sliceStartIndex, offsetBy: count, limitedBy: self.subject.endIndex) else {
 			return nil
 		}
-		self.advance(by: count)
+		self._position = sliceEndIndex
 		return self.subject[sliceStartIndex ..< sliceEndIndex]
 	}
 	
 	/// Returns whether the remainder of the subject starts with the given prefix, and advances the parser by that prefix if so.
 	@inlinable
-	public mutating func read(_ subsequence: SubSequence) -> Bool where SubSequence: Equatable {
+	public mutating func read(_ subsequence: SubSequence) -> Bool where Element: Equatable, Element == SubSequence.Element {
 		if self.hasPrefix(subsequence) {
 			self.advance(by: subsequence.count)
 			return true
@@ -293,18 +303,9 @@ public struct Parser<Subject: Collection> {
 	/// - Parameter predicate: A closure that takes the current element as its argument and returns whether the parser should advance past that element.
 	@inlinable
 	public mutating func read<E>(while predicate: (Element) throws(E) -> Bool) throws(E) -> SubSequence {
-		let prefix: SubSequence
-		do {
-			prefix = try self.remainder().prefix(while: predicate)
-		}
-		catch let error as E {
-			throw error
-		}
-		catch {
-			preconditionFailure("unreachable")
-		}
-		self.advance(by: prefix.count)
-		return prefix
+		let startIndex = self._position
+		try self.advance(while: predicate)
+		return self.subject[startIndex ..< self._position]
 	}
 	
 	#if !$Embedded
@@ -319,7 +320,7 @@ public struct Parser<Subject: Collection> {
 		guard let match = try regex.regex.prefixMatch(in: self.remainder()) else {
 			return nil
 		}
-		self.position = match.range.upperBound
+		self._position = match.range.upperBound
 		return match
 	}
 	#endif
@@ -350,10 +351,10 @@ public struct Parser<Subject: Collection> {
 		_ view: View,
 		_ code: (inout Parser<View>) throws(E) -> R,
 	) throws(E) -> R where View: Collection, View.Index == Index {
-		var subParser = Parser<View>(subject: view, position: self.position)
-		
+		var subParser = Parser<View>(subject: view, position: self._position)
+
 		defer {
-			self.position = subParser.position
+			self._position = subParser.position
 		}
 		
 		return try code(&subParser)
