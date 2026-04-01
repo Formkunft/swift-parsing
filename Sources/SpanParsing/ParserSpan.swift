@@ -106,7 +106,7 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	///
 	/// The distance can be negative; moving the parsing position backwards.
 	///
-	/// > Important: Only call this method if advancing the parser by the given distance does not move past the start or end of the sapn.
+	/// > Important: Only call this method if advancing the parser by the given distance does not move past the start or end of the span.
 	/// > Otherwise, a precondition failure is triggered.
 	@inlinable
 	@_lifetime(copy self)
@@ -223,10 +223,10 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 		return unsafe self.uncheckedPop()
 	}
 	
-	/// Returns the current element and advances the parser, or returns `nil` if the parser is at the end of the span.
+	/// Returns the current element and advances the parser.
 	///
 	/// > Important: Only call this method if the parser is not at the end.
-	/// > Otherwise, a precondition failure is triggered.
+	/// > Failure to satisfy that assumption is a serious programming error.
 	@inlinable
 	@unsafe
 	@_lifetime(copy self)
