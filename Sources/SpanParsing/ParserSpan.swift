@@ -59,7 +59,6 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	/// > Important: Only call this method with a new position that is a valid index for the span.
 	/// > Otherwise, a precondition failure is triggered.
 	@inlinable
-	@_lifetime(copy self)
 	public mutating func reposition(to newPosition: Int) {
 		precondition(newPosition >= 0)
 		precondition(newPosition <= self.span.count)
@@ -72,7 +71,6 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	/// > Failure to satisfy that assumption is a serious programming error.
 	@inlinable
 	@unsafe
-	@_lifetime(copy self)
 	public mutating func uncheckedReposition(to newPosition: Int) {
 		assert(newPosition >= 0)
 		assert(newPosition <= self.span.count)
@@ -109,7 +107,6 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	/// > Important: Only call this method if advancing the parser by the given distance does not move past the start or end of the span.
 	/// > Otherwise, a precondition failure is triggered.
 	@inlinable
-	@_lifetime(copy self)
 	public mutating func advance(by distance: Int) {
 		precondition(self._position + distance <= self.span.count)
 		precondition(self._position + distance >= 0)
@@ -124,7 +121,6 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	/// > Failure to satisfy that assumption is a serious programming error.
 	@inlinable
 	@unsafe
-	@_lifetime(copy self)
 	public mutating func uncheckedAdvance(by distance: Int) {
 		assert(self._position + distance <= self.span.count)
 		assert(self._position + distance >= 0)
@@ -151,7 +147,6 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	///
 	/// - Parameter predicate: A closure that takes the current element as its argument and returns whether the parser should advance past that element.
 	@inlinable
-	@_lifetime(copy self)
 	public mutating func advance<E>(
 		while predicate: (Element) throws(E) -> Bool,
 	) throws(E) {
@@ -229,7 +224,6 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	/// > Failure to satisfy that assumption is a serious programming error.
 	@inlinable
 	@unsafe
-	@_lifetime(copy self)
 	mutating func uncheckedPop() -> Element {
 		assert(self._position < self.span.count)
 		defer {
@@ -240,7 +234,6 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	
 	/// Returns whether the current element is equal to the given element, and advances the parser by that element if so.
 	@inlinable
-	@_lifetime(copy self)
 	public mutating func pop(_ element: Element) -> Bool where Element: Equatable {
 		guard let head = self.peek(), head == element else {
 			return false
@@ -253,7 +246,6 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	///
 	/// - Returns: The current element if it matches the given predicate, or `nil` if the parser is at the end of the span or the current element does not match the given predicate.
 	@inlinable
-	@_lifetime(copy self)
 	public mutating func pop<E>(
 		where predicate: (Element) throws(E) -> Bool,
 	) throws(E) -> Element? {
