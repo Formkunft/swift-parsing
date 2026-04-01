@@ -265,7 +265,7 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 		let count = Int(count)
 		let startIndex = self.position
 		let endIndex = startIndex + count
-		guard endIndex < self.span.count else {
+		guard endIndex <= self.span.count else {
 			return nil
 		}
 		unsafe self.uncheckedAdvance(by: count)
