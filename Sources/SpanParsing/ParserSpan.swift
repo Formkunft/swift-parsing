@@ -64,17 +64,6 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	/// Changes the index of the current element.
 	///
 	/// > Important: Only call this method with a new position that is a valid index for the span.
-	/// > Otherwise, a precondition failure is triggered.
-	@inlinable
-	public mutating func reposition(to newPosition: Int) {
-		precondition(newPosition >= 0)
-		precondition(newPosition <= self.span.count)
-		self._position = newPosition
-	}
-	
-	/// Changes the index of the current element.
-	///
-	/// > Important: Only call this method with a new position that is a valid index for the span.
 	/// > Failure to satisfy that assumption is a serious programming error.
 	@inlinable
 	@unsafe
@@ -211,6 +200,14 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 			return nil
 		}
 		return (a, unsafe self.span[unchecked: bIndex], unsafe self.span[unchecked: cIndex])
+	}
+	
+	// MARK: Has Prefix
+	
+	/// Returns whether the current element is equal to the given element.
+	@inlinable
+	public func hasPrefix(_ element: Element) -> Bool where Element: Equatable {
+		self.peek() == element
 	}
 	
 	// MARK: Pop

@@ -55,7 +55,7 @@ public struct Parser<Subject: Collection> {
 	
 	/// Whether the parser is at the end of the subject and no more elements can be read.
 	@inlinable
-	public var isAtEnd: Bool {
+	public var isEmpty: Bool {
 		self._position == self.subject.endIndex
 	}
 	
@@ -63,6 +63,15 @@ public struct Parser<Subject: Collection> {
 	@inlinable
 	public func remainder() -> SubSequence {
 		self.subject[self._position ..< self.subject.endIndex]
+	}
+	
+	/// Changes the index of the current element without bounds checking.
+	///
+	/// > Important: Only call this method with a new position that is a valid index for the subject.
+	/// > Failure to satisfy that assumption is a serious programming error.
+	@inlinable
+	public mutating func uncheckedReposition(to newPosition: Index) {
+		self._position = newPosition
 	}
 	
 	// MARK: Advance
@@ -153,7 +162,7 @@ public struct Parser<Subject: Collection> {
 	/// Returns the current element, or `nil` if the parser is at the end of the subject.
 	@inlinable
 	public func peek() -> Element? {
-		guard !self.isAtEnd else {
+		guard !self.isEmpty else {
 			return nil
 		}
 		return self.subject[self._position]
@@ -231,6 +240,7 @@ public struct Parser<Subject: Collection> {
 	
 	/// Returns the current element and advances the parser, or returns `nil` if the parser is at the end of the subject.
 	@inlinable
+	@discardableResult
 	public mutating func pop() -> Element? {
 		guard let element = self.peek() else {
 			return nil
@@ -352,7 +362,7 @@ public struct Parser<Subject: Collection> {
 		_ code: (inout Parser<View>) throws(E) -> R,
 	) throws(E) -> R where View: Collection, View.Index == Index {
 		var subParser = Parser<View>(subject: view, position: self._position)
-
+		
 		defer {
 			self._position = subParser.position
 		}

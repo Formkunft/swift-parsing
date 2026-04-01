@@ -17,7 +17,7 @@ The position is the only mutable state of the parser.
 ### Remaining Subject
 
 - ``Parser/remainder()``
-- ``Parser/isAtEnd``
+- ``Parser/isEmpty``
 
 ### Peeking Ahead
 

@@ -24,5 +24,14 @@ let package = Package(
 				.strictMemorySafety(),
 				.enableExperimentalFeature("Lifetimes"),
 			]),
+		.testTarget(
+			name: "CollectionParsingTests",
+			dependencies: ["CollectionParsing"]),
+		.testTarget(
+			name: "SpanParsingTests",
+			dependencies: ["SpanParsing"],
+			swiftSettings: [
+				.enableExperimentalFeature("Lifetimes"),
+			]),
 	],
 )
