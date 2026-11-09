@@ -267,12 +267,12 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	@inlinable
 	@_lifetime(copy self)
 	public mutating func read(count: UInt) -> Span<Element>? {
+		guard count <= UInt(self.count) else {
+			return nil
+		}
 		let count = Int(count)
 		let startIndex = self._position
 		let endIndex = startIndex + count
-		guard endIndex <= self.span.count else {
-			return nil
-		}
 		unsafe self.uncheckedAdvance(by: count)
 		return unsafe self.span.extracting(unchecked: startIndex ..< endIndex)
 	}

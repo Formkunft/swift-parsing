@@ -460,6 +460,16 @@ struct `ParserSpan tests` {
 		}
 	}
 	
+	@Test(arguments: [UInt.max, UInt(Int.max)], [0, 1, 3])
+	func `read oversized count preserves position`(count: UInt, position: Int) {
+		withParser([1, 2, 3], position: position) { parser in
+			let isNil = parser.read(count: count) == nil
+			let positionAfterRead = parser.position
+			#expect(isNil)
+			#expect(positionAfterRead == position)
+		}
+	}
+
 	@Test func `read count on empty`() {
 		withParser([]) { parser in
 			let isNil = parser.read(count: 1) == nil
