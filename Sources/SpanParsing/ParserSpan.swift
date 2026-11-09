@@ -37,6 +37,7 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	@inlinable
 	@_lifetime(copy span)
 	public init(_ span: Span<Element>, position: Int = 0) {
+		precondition(position >= 0)
 		precondition(position <= span.count)
 		self.span = span
 		self._position = position

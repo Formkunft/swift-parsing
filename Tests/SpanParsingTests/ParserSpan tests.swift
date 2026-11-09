@@ -36,6 +36,15 @@ struct `ParserSpan tests` {
 		}
 	}
 	
+	@Test func `reject negative initial position`() async {
+		await #expect(processExitsWith: .failure) {
+			withParser([1, 2, 3], position: -1) { _ in }
+		}
+		await #expect(processExitsWith: .failure) {
+			withParser([1, 2, 3], position: Int.min) { _ in }
+		}
+	}
+	
 	@Test func `create with empty span`() {
 		withParser([]) { parser in
 			let isEmpty = parser.isEmpty
