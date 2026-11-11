@@ -25,7 +25,7 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	/// The parser is at the end when its position is equal to ``span.count``.
 	@inlinable
 	public var position: Int {
-		get { self._position }
+		get { _assumeNonNegative(self._position) }
 		set {
 			precondition(newValue >= 0)
 			precondition(newValue <= self.span.count)
@@ -46,7 +46,7 @@ public struct ParserSpan<Element>: ~Escapable, ~Copyable {
 	/// The count of unparsed elements, that is, the elements starting at ``position``.
 	@inlinable
 	public var count: Int {
-		self.span.count &- self._position
+		_assumeNonNegative(self.span.count &- self._position)
 	}
 	
 	/// Whether the parser is at the end of the span and no more elements can be read.
